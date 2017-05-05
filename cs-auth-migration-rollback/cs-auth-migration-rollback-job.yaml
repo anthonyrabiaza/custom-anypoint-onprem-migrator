@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cs-auth-db-migration-rollback
+  labels:
+    app: cs-auth-rollback
+    microservice: cs-auth-rollback
+spec:
+  template:
+    metadata:
+      name: cs-auth-db-migration
+      labels:
+        app: arm
+        microservice: cs-auth
+        component: cs-auth-db-migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: cs-auth-db-migration
+        image: apiserver:5000/cs/cs-auth:0.15.0-rc.4-patch.2-onprem
+        command: ["npm", "run", "grunt", "migration_rollback_onprem"]
+        volumeMounts:
+          - name: cs-auth-config
+            mountPath: /usr/src/app/api/config
+          - name: cluster-ca
+            mountPath: /etc/ssl/cluster
+      volumes:
+        - name: cs-auth-config
+          secret:
+            secretName: cs-auth-config
+        - name: cluster-ca
+          secret:
+            secretName: cluster-ca
+      imagePullSecrets:
+          - name: devdocker-registrykey

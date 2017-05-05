@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrator-target-authdb
+spec:
+  activeDeadlineSeconds: 2400
+  template:
+    metadata:
+      name: db-migrator-target-authdb
+    spec:
+      imagePullSecrets:
+          - name: devdocker-registrykey
+      containers:
+      - name: db-migrator-target
+        image: apiserver:5000/mulesoft/db-migrator-target:1.0.0
+        imagePullPolicy: Always
+        env:
+          - name: SOURCE_HOST
+            value: "<<REPLACE>>"
+          - name: SOURCE_PORT
+            value: "10002"
+          - name: SOURCE_DATABASE
+            value: postgres
+          - name: SOURCE_USER
+            value: postgres
+          - name: SOURCE_PASSWORD
+            value: password
+          - name: TARGET_HOST
+            value: cs-auth-db
+          - name: TARGET_PORT
+            value: "5432"
+          - name: TARGET_DATABASE
+            value: ms_authentication
+          - name: TARGET_USER
+            value: postgres
+          - name: TARGET_PASSWORD
+            value: <<REPLACE>>
+      restartPolicy: Never
