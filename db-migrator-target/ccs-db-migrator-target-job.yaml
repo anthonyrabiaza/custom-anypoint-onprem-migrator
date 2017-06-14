@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrator-target-ccs
+spec:
+  activeDeadlineSeconds: 2400
+  template:
+    metadata:
+      name: db-migrator-target-ccs
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: db-migrator-target
+        image: apiserver:5000/api-platform/contract-caching-service:1.0.2-patch.3-onprem
+        command: ["node", "scripts/indexer/indexer.js"]
+        env:
+          - name: ccsDbPass
+            value: password
+          - name: apDbPass
+            value: password
+          - name: csAccessToken
+            value: "defaultApiportalToken"
+          - name: apDbHost
+            value: "api-platform-api-db"
+          - name: apDbUser
+            value: "postgres"
+          - name: apDbName
+            value: "api-platform"
+          - name: ccsDbHost
+            value: "ccs-db"
+          - name: ccsDbUser
+            value: "postgres"
+          - name: ccsDbName
+            value: "contract-caching-service"
+          - name: csBaseUri
+            value: "https://cs-auth.default.svc:3005"
+          - name: ssl
+            value: "true"
+        volumeMounts:
+        - name: contract-caching-service-config
+          mountPath: /usr/src/app/config
+        - name: cluster-ca
+          mountPath: /etc/ssl/cluster
+      volumes:
+      - name: contract-caching-service-config
+        secret:
+          secretName: contract-caching-service-config
+      - name: cluster-ca
+        secret:
+          secretName: cluster-ca
+      imagePullSecrets:
+          - name: devdocker-registrykey
